@@ -1,42 +1,37 @@
+import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { fetchContacts, addContact, deleteContact } from '../../redux/contactOps';
 import ContactForm from '../ContactForm/ContactForm';
 import ContactList from '../ContactList/ContactList';
 import SearchBox from '../SearchBox/SearchBox';
-import { addContact, deleteContact } from '../../redux/contactsSlice';
 
 export default function App() {
-  const contacts = useSelector(state => state.contacts.items);
-  const filter = useSelector(state => state.filters.name);
   const dispatch = useDispatch();
+  const loading = useSelector((state) => state.contacts.loading);
+  const error = useSelector((state) => state.contacts.error);
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   const handleAddContact = ({ name, number }) => {
-    const duplicate = contacts.find(
-      contact => contact.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (duplicate) {
-      alert(`${name} is already in contacts.`);
-      return;
-    }
-
     dispatch(addContact({ name, number }));
   };
 
-  const handleDeleteContact = id => {
+  const handleDeleteContact = (id) => {
     dispatch(deleteContact(id));
   };
-
-  const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
-  );
 
   return (
     <div>
       <h1>Phonebook</h1>
       <ContactForm onSubmit={handleAddContact} />
       <SearchBox />
-      <ContactList contacts={filteredContacts} onDeleteContact={handleDeleteContact} />
+      {loading && <p>Loading...</p>}
+      {error && <p>Error: {error}</p>}
+      <ContactList onDeleteContact={handleDeleteContact} />
     </div>
   );
 }
+
 
